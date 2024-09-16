@@ -4,5 +4,7 @@
 /docs/Manifest.toml
 /docs/build/
 
+/deps/build.log
+
 Manifest.toml
 .CondaPkg
