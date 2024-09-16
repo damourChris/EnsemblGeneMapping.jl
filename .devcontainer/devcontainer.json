@@ -5,5 +5,6 @@
     "image": "mcr.microsoft.com/devcontainers/base:bullseye",
     "features": {
         "ghcr.io/julialang/devcontainer-features/julia:1": {}
-    }
+    },
+    "postCreateCommand": "export PATH=\"$HOME/.julia/bin:$PATH\""
 }
