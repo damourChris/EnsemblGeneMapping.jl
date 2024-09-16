@@ -6,7 +6,7 @@ using ExpressionData
 
 @main function map_to_ensembl(eset::String, attribute::String;
                               output_file::String,
-                              config_file::string)
+                              config_file::String)
     # Parse the arguments into a config struct
     config::Config = load_config(config_file)
 
