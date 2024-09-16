@@ -1,7 +1,7 @@
 name = "EnsemblGeneMapping"
 uuid = "1f77eb72-0729-4ed2-97ea-5821b29540d7"
 authors = ["Chris Damour"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 Comonicon = "863f3e99-da2a-4334-8734-de3dacbe5542"
