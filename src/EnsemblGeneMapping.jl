@@ -4,6 +4,8 @@ using Comonicon
 using RCall
 using ExpressionData
 
+include("config.jl")
+
 @main function map_to_ensembl(eset::String, attribute::String;
                               output_file::String,
                               config_file::String)
