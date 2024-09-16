@@ -5,8 +5,8 @@ using RCall
 using ExpressionData
 
 @main function map_to_ensembl(eset::String, attribute::String;
-                              output_file::Union{Nothing,String}=nothing,
-                              config_file::Union{Nothing,String}=nothing)
+                              output_file::String,
+                              config_file::string)
     # Parse the arguments into a config struct
     config::Config = load_config(config_file)
 
