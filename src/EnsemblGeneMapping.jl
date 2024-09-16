@@ -16,9 +16,13 @@ using ExpressionData
 
     (; gene_col, mart_id, mart_dataset) = config
 
-    @rput eset gene_col mart_id mart_dataset attribute
+    # Get the R utils files path
+    r_utils_path = joinpath(@__DIR__, "utils.r")
+
+    @rput eset gene_col mart_id mart_dataset attribute r_utils_path
 
     R"""
+    source(r_utils_path)
     mart <- biomaRt::useMart(mart_id, dataset = mart_dataset)
 
     annotated_eset <-
