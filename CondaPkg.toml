@@ -4,4 +4,3 @@ channels = ["conda-forge", "bioconda"]
 bioconductor-biomart = ""
 r-dplyr = "==1.1.4"
 r-base = "==4.3.3"
-r = ""
