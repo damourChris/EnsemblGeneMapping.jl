@@ -1,25 +1,18 @@
 module EnsemblGeneMapping
 
-using Comonicon
-using RCall
 using ExpressionData
+using RCall
 
-include("config.jl")
+export map_to_ensembl
 
-@main function map_to_ensembl(eset::String, attribute::String;
-                              output_file::String,
-                              config_file::String)
-    # Parse the arguments into a config struct
-    config::Config = load_config(config_file)
+# Get the R utils files path
+const r_utils_path = joinpath(@__DIR__, "utils.r")
 
-    output_file = isnothing(output_file) ? eset : output_file
-
-    eset = load_eset(eset)
-
-    (; gene_col, mart_id, mart_dataset) = config
-
-    # Get the R utils files path
-    r_utils_path = joinpath(@__DIR__, "utils.r")
+function map_to_ensembl(eset::ExpressionSet, attribute::String; 
+        gene_col::String = "gene_symbol",  
+        mart_id::String = "ensembl", 
+        mart_dataset::String = "hsapiens_gene_ensembl",
+    )
 
     @rput eset gene_col mart_id mart_dataset attribute r_utils_path
 
@@ -41,7 +34,7 @@ include("config.jl")
 
     eset = @rget annotated_eset
 
-    return save_eset(eset, output_file)
+    return eset
 end
 
 end
