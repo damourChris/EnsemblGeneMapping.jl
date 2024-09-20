@@ -115,7 +115,6 @@ aggregate_expression <- function(eset, gene_col, aggregate_fun = max) {
   return(new_eset)
 }
 
-
 map_to_ensembl <- function(eset, gene_col, attribute, mart, handle = NULL) {
   base_eset <- eset
   gene_ids <- fData(base_eset)[[gene_col]]
@@ -139,35 +138,80 @@ map_to_ensembl <- function(eset, gene_col, attribute, mart, handle = NULL) {
     print("No genes were mapped to Ensembl IDs")
   }
 
-  unique_mapping <- mapping[!duplicated(mapping[[attribute]]), ]
 
-  fData(mapped_genes_eset)[["ensembl_id"]] <- sapply(
-    fData(mapped_genes_eset)[[gene_col]], function(x) {
-      mapping$ensembl_gene_id[which(unique_mapping[[attribute]] == x)]
-    }
-  )
+  # Mapping assumptions
+  # Diff OG id -> Same Ensembl ID -> Aggregate expression
+  # Same OG id -> Same Ensembl ID -> Keep expression
+  # Same OG id -> Diff Ensembl ID -> Duplicate expression
 
-
-  # Duplicate expression if same gene map to different Ensembl ID
-  duplicated_genes <- mapping[duplicated(mapping[[attribute]]), attribute]
-  duplicated_genes_index <-
-    which(featureNames(mapped_genes_eset) %in% duplicated_genes)
-
-  if (length(duplicated_genes_index) == 0) {
-    return(mapped_genes_eset)
+  #  Workflow: make a subset of the original Eset for each of the above 
+  # cases and then combine them
+  
+  # Before anything, lets construct a df that indicates what to do with each gene
+  # 1. If the gene is not mapped, we will remove it
+  # 2. If the gene is mapped, we will keep it
+  #  - a. If the gene is mapped to multiple ensembl ids, we will duplicate the expression 
+  #  - b. If the gene is mapped to a single ensembl id, we will keep the expression as is
+  #  - c. If multiple gene are mapped to the same ensembl id, we will aggregate the expression
+  
+  # Step 1: Identify unique mappings (one-to-one or many-to-one)
+  unique_mappings <- mapping %>%
+    group_by(!!sym(attribute)) %>%
+    summarise(
+      n = n(),
+      ensembl_gene_id = list(unique(ensembl_gene_id))
+    ) %>%
+    filter(n == 1 | length(ensembl_gene_id) > 0)
+  
+  # Step 2: Process one-to-many mappings
+  one_to_many <- unique_mappings %>%
+    filter(length(ensembl_gene_id) == 1)
+  
+  if (nrow(one_to_many) > 0) {
+    one_to_many_expanded <- one_to_many %>%
+      unnest(ensembl_ids) %>%
+      select(attribute, ensembl_id)
+    
+    df <- bind_rows(df, one_to_many_expanded)
   }
+  
+  # Step 3: Remove unmapped genes
+  mapped_attributes <- unique(mapping[[attribute]])
+    
+    # Filter the original data frame to keep only mapped attributes
+  new_fdata <- fData(base_eset) %>%
+    filter(!!sym(gene_col) %in% mapped_attributes) 
+  
+  # Add the ensembl ids as a new column by matching the gene ids
+  new_fdata$ensembl_id <- 
+    mapping$ensembl_gene_id[match(new_fdata[[gene_col]], mapping[[attribute]])]
+    
+  # Step 4: Aggregate expressions for many-to-one mappings
+    
+  # First get the rows of the epxression matrix grouped by the ensembl id and remove the unmapped genes
+  # which are stored in the new_fdata data frame
+  gx_data <- exprs(base_eset)
+  rownames(gx_data) <- fData(base_eset)[[gene_col]]
+  gx_data <- gx_data[rownames(gx_data) %in% new_fdata[[gene_col]], ]
 
-  duplicated_genes_exprs <- exprs(mapped_genes_eset)[duplicated_genes_index, ]
-
-  # rename the rows with Ensembl ID
-  rownames(duplicated_genes_exprs) <-
-    mapping$ensembl_gene_id[duplicated_genes_index]
-
-  new_eset <- ExpressionSet(
-    assayData = rbind(exprs(mapped_genes_eset), duplicated_genes_exprs),
-    phenoData = pData(mapped_genes_eset),
-    featureData = fData(mapped_genes_eset)
+  # Aggregate the expression data for the genes with the same ensembl id
+  aggregated_gx_data <- aggregate(
+    gx_data, 
+    by = list(ensembl_id = new_fdata$ensembl_id), 
+    FUN = sum
   )
-
-  return(new_eset)
+  
+  # Remove the row names and the ensembl id column
+  rownames(aggregated_gx_data) <- NULL
+  aggregated_gx_data <- aggregated_gx_data[, -1]
+  
+  # Update the new_fdata data frame to remove the genes that were not mapped
+  new_fdata <- new_fdata[match(rownames(aggregated_gx_data), new_fdata$ensembl_id), ]
+  
+  # Create a new ExpressionSet object with the aggregated expression data
+  new_eset <- ExpressionSet(
+    assayData = as.matrix(aggregated_gx_data),
+    phenoData = AnnotatedDataFrame(pData(base_eset)),
+    featureData = AnnotatedDataFrame(new_fdata)
+  )
 }
