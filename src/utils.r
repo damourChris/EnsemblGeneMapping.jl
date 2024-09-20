@@ -215,6 +215,8 @@ map_to_ensembl <- function(eset, gene_col, attribute, mart, handle = NULL) {
   new_eset <- ExpressionSet(
     assayData = as.matrix(aggregated_gx_data),
     phenoData = AnnotatedDataFrame(pData(base_eset)),
-    featureData = AnnotatedDataFrame(new_fdata)
+    featureData = AnnotatedDataFrame(new_fdata),
+    experimentData = experimentData(base_eset),
+    annotation = annotation(base_eset)
   )
 }
