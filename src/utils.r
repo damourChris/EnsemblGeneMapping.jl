@@ -108,7 +108,7 @@ aggregate_expression <- function(eset, gene_col, aggregate_fun = max) {
 
   new_eset <- ExpressionSet(
     assayData = as.matrix(aggregated_data[, -1]),
-    phenoData = phenoData(base_eset),
+    phenoData = AnnotatedDataFrame(pData(base_eset)),
     featureData = filtered_feature_data
   )
 
