@@ -16,11 +16,8 @@ function map_to_ensembl(eset::ExpressionSet, attribute::String;
 
     R"""
     suppressPackageStartupMessages({
-        library(data.table)
         library(biomaRt)
-        library(R.utils)
         library(dplyr)
-        library("curl")
         library(httr)
     })
     source(r_utils_path)
