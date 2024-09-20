@@ -40,7 +40,8 @@ function map_to_ensembl(eset::ExpressionSet, attribute::String;
         aggregate_expression(gene_col = "ensembl_id")
     """
 
-    eset = @rget annotated_eset
+    eset_r = @rget annotated_eset
+    eset = convert(ExpressionSet, eset_r)
 
     return eset
 end
