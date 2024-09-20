@@ -1,6 +1,9 @@
 using EnsemblGeneMapping
+using ExpressionData
 using Test
+using TestItems
+using TestItemRunner
 
-@testset "EnsemblGeneMapping.jl" begin
-    # Write your tests here.
-end
+include("setup.jl")
+
+@run_package_tests
