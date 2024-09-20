@@ -1,6 +1,0 @@
-name = "map_to_ensembl"
-
-[install]
-completion = true
-quiet = false
-optimize = 2
