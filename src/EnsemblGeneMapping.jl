@@ -17,8 +17,18 @@ function map_to_ensembl(eset::ExpressionSet, attribute::String;
     @rput eset gene_col mart_id mart_dataset attribute r_utils_path
 
     R"""
+    suppressPackageStartupMessages({
+        library(data.table)
+        library(biomaRt)
+        library(R.utils)
+        library(dplyr)
+        library("curl")
+        library(httr)
+    })
     source(r_utils_path)
-    mart <- biomaRt::useMart(mart_id, dataset = mart_dataset)
+
+    set_config(config(ssl_verifypeer = 0L))
+    mart <- useMart(mart_id, dataset = mart_dataset)
 
     annotated_eset <-
         remove_empty_genes(eset, gene_col = gene_col) %>%
