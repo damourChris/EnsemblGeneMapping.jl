@@ -201,13 +201,16 @@ map_to_ensembl <- function(eset, gene_col, attribute, mart, handle = NULL) {
     FUN = sum
   )
   
+
   # Remove the row names and the ensembl id column
-  rownames(aggregated_gx_data) <- NULL
+  rownames(aggregated_gx_data) <- aggregated_gx_data$ensembl_id
+  
   aggregated_gx_data <- aggregated_gx_data[, -1]
   
   # Update the new_fdata data frame to remove the genes that were not mapped
   new_fdata <- new_fdata[match(rownames(aggregated_gx_data), new_fdata$ensembl_id), ]
-  
+  rownames(new_fdata) <- new_fdata$ensembl_id 
+
   # Create a new ExpressionSet object with the aggregated expression data
   new_eset <- ExpressionSet(
     assayData = as.matrix(aggregated_gx_data),
