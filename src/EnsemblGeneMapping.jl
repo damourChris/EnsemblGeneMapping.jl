@@ -8,12 +8,10 @@ export map_to_ensembl
 # Get the R utils files path
 const r_utils_path = joinpath(@__DIR__, "utils.r")
 
-function map_to_ensembl(eset::ExpressionSet, attribute::String; 
-        gene_col::String = "gene_symbol",  
-        mart_id::String = "ensembl", 
-        mart_dataset::String = "hsapiens_gene_ensembl",
-    )
-
+function map_to_ensembl(eset::ExpressionSet, attribute::String;
+                        gene_col::String="gene_symbol",
+                        mart_id::String="ensembl",
+                        mart_dataset::String="hsapiens_gene_ensembl")
     @rput eset gene_col mart_id mart_dataset attribute r_utils_path
 
     R"""
